@@ -11,10 +11,6 @@ import pandas as pd
 
 PORTFOLIO_FILE = "portfolio_data.json"
 STARTING_CASH  = 100_000.0
-WATCHLIST      = ["AAPL", "MSFT", "GOOGL", "NVDA", "META", "AMZN", "TSLA", "SPY", "NVDA", "PAVS", "GPUS", "SOXS", "GDC", "CTM",
-                  "CAST", "NIXX", "COSM", "RGNT", "NOK", "BMNU", "TZA", "SRXH", "INTC", "GELS", "AHMA", "ORGNW", "RGNT", "CUPR",
-                  "LGL", "PAVS", "QTEXW", "EVLVW", "MTEN", "VSME", "HUBC", "TALKW", "PBMWW", "ALVOW", 
-                  "ARBEW", "ARBEW", "AHMA", "HQWWW", "DAVEW", "MRNOW"]
 SNAPSHOT_FILE  = "snapshots.json"
 
 # ─── Auto-trade configuration ─────────────────────────────────────────────────
@@ -164,16 +160,10 @@ def fetch_nasdaq_most_active(n: int = 50) -> list:
 
 
 def get_watchlist(data: Optional[dict] = None) -> list:
-    """Return the active watchlist: dynamic list persisted in portfolio data, or default."""
+    """Return the persisted dynamic watchlist from portfolio data, or empty list."""
     if data and "watchlist" in data:
         return data["watchlist"]
-    seen: set = set()
-    result = []
-    for s in WATCHLIST:
-        if s not in seen:
-            seen.add(s)
-            result.append(s)
-    return result
+    return []
 
 
 # ─── ORB strategy ─────────────────────────────────────────────────────────────
@@ -546,7 +536,13 @@ def cmd_history(data: dict, limit: int = 20):
 
 def cmd_scan(symbols: Optional[list] = None):
     data = load_portfolio()
-    syms = [s.upper() for s in (symbols or get_watchlist(data))]
+    wl   = get_watchlist(data)
+    if not wl and not symbols:
+        import sys as _sys
+        _sys.stderr.write("  fetching Nasdaq most active...\r"); _sys.stderr.flush()
+        wl = fetch_nasdaq_most_active(50)
+        _sys.stderr.write(" " * 50 + "\r"); _sys.stderr.flush()
+    syms = [s.upper() for s in (symbols or wl)]
     now  = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"\n  SIGNAL SCAN  {now}")
     print("  " + "=" * 96)
@@ -1026,7 +1022,7 @@ def print_help():
     snapshot                       Save today's portfolio value (builds equity curve)
     equity                         Show equity curve across all snapshots
 
-  {B}Default watchlist:{Z}  {"  ".join(WATCHLIST)}
+  {B}Watchlist:{Z}  Auto-populated from Nasdaq most-active by volume each autotrade cycle
 
   {B}Strategy logic{Z}
     ORB:    breakout above/below the first 30-min range → momentum entry
