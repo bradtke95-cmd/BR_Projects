@@ -941,6 +941,19 @@ def cmd_autotrade(data: dict, symbols: Optional[list] = None, dry_run: bool = Fa
     print("  " + "=" * 76)
     print(f"  Buys: {buys}  |  Sells: {sells}  |  Skipped: {skips}  "
           f"|  Cash: {fmt_price(data['cash'])}")
+
+    if data["positions"]:
+        print(f"\n  {'Symbol':<8} {'Shares':>8} {'AvgCost':>10} {'Price':>10} {'MktValue':>12} {'Unrealized':>18}")
+        print(f"  {'-'*8} {'-'*8} {'-'*10} {'-'*10} {'-'*12} {'-'*18}")
+        for sym, pos in data["positions"].items():
+            price = get_price(sym)
+            mv    = (price or pos["avg_cost"]) * pos["shares"]
+            unr   = (price - pos["avg_cost"]) * pos["shares"] if price else 0.0
+            pr_s  = fmt_price(price) if price else f"{D}N/A{Z}"
+            print(f"  {sym:<8} {pos['shares']:>8.2f} {fmt_price(pos['avg_cost']):>10} "
+                  f"{pr_s:>10} {fmt_price(mv):>12} {_ljust(fmt_currency(unr), 27)}")
+        print()
+
     print(f"  Portfolio Value: {fmt_price(total_val)}  "
           f"(Positions: {fmt_price(pos_val)}  |  P&L: {fmt_currency(pnl)})")
     if dry_run:
