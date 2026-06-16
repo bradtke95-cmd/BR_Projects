@@ -133,6 +133,49 @@ def _download(symbol: str, period: str, interval: str) -> Optional[pd.DataFrame]
         return None
 
 
+def _is_potentially_delisted(symbol: str) -> bool:
+    """Return True when no price AND no recent daily OHLC data can be fetched."""
+    if get_price(symbol) is not None:
+        return False
+    df = _download(symbol, period="5d", interval="1d")
+    return df is None or df.empty
+
+
+_NASDAQ_EXCHANGES = {"NMS", "NGM", "NCM", "NasdaqGS", "NasdaqGM", "NasdaqCM"}
+
+def fetch_nasdaq_most_active(n: int = 50) -> list:
+    """Return up to n most-active Nasdaq tickers by volume via yfinance screen."""
+    try:
+        import yfinance as yf
+        result = yf.screen("most_actives", count=150)
+        quotes = result.get("quotes", [])
+
+        def _valid(sym: str) -> bool:
+            return bool(sym) and not any(c in sym for c in (".", "^", "/"))
+
+        nasdaq = [q["symbol"] for q in quotes
+                  if _valid(q.get("symbol", "")) and q.get("exchange", "") in _NASDAQ_EXCHANGES]
+        if len(nasdaq) >= 5:
+            return nasdaq[:n]
+        # Fallback: screener returned different exchange codes — accept everything
+        return [q["symbol"] for q in quotes if _valid(q.get("symbol", ""))][:n]
+    except Exception:
+        return []
+
+
+def get_watchlist(data: Optional[dict] = None) -> list:
+    """Return the active watchlist: dynamic list persisted in portfolio data, or default."""
+    if data and "watchlist" in data:
+        return data["watchlist"]
+    seen: set = set()
+    result = []
+    for s in WATCHLIST:
+        if s not in seen:
+            seen.add(s)
+            result.append(s)
+    return result
+
+
 # ─── ORB strategy ─────────────────────────────────────────────────────────────
 #
 # Opening Range Breakout: mark the high/low of the first 30 minutes (9:30–10:00 ET).
@@ -502,7 +545,8 @@ def cmd_history(data: dict, limit: int = 20):
 
 
 def cmd_scan(symbols: Optional[list] = None):
-    syms = [s.upper() for s in (symbols or WATCHLIST)]
+    data = load_portfolio()
+    syms = [s.upper() for s in (symbols or get_watchlist(data))]
     now  = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"\n  SIGNAL SCAN  {now}")
     print("  " + "=" * 96)
@@ -769,7 +813,7 @@ def _is_actionable_buy(sym: str, strength: str, positions: dict) -> bool:
 
 def cmd_autotrade(data: dict, symbols: Optional[list] = None, dry_run: bool = False):
     import sys as _sys
-    syms = [s.upper() for s in (symbols or WATCHLIST)]
+    syms = [s.upper() for s in (symbols or get_watchlist(data))]
     now  = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     mode = f"{Y}DRY RUN{Z}" if dry_run else f"{G}LIVE{Z}"
     print(f"\n  AUTO-TRADE  {now}  [{mode}]")
@@ -777,6 +821,49 @@ def cmd_autotrade(data: dict, symbols: Optional[list] = None, dry_run: bool = Fa
 
     cash_floor = STARTING_CASH * AUTO_CASH_RESERVE
     buys = sells = skips = 0
+
+    # ── Pre-scan: detect and liquidate potentially delisted positions ─────────
+    delisted_syms = [sym for sym in list(data["positions"])
+                     if _is_potentially_delisted(sym)]
+    if delisted_syms:
+        print(f"  {R}Potentially delisted: {', '.join(delisted_syms)}{Z}")
+        for sym in delisted_syms:
+            pos = data["positions"].get(sym)
+            if pos:
+                sell_price = pos["avg_cost"]
+                proceeds   = round(sell_price * pos["shares"], 2)
+                print(f"  {sym:<7}  {R}FORCE LIQUIDATE{Z}  {pos['shares']} sh "
+                      f"@ {fmt_price(sell_price)} (last known cost)  = {fmt_price(proceeds)}")
+                if not dry_run:
+                    data["cash"] += proceeds
+                    data["trades"].append({
+                        "time": datetime.now().isoformat(timespec="seconds"),
+                        "action": "SELL", "symbol": sym,
+                        "shares": pos["shares"], "price": sell_price,
+                        "total": proceeds, "realized_pnl": 0.0,
+                        "note": "force-liquidated: potentially delisted",
+                    })
+                    del data["positions"][sym]
+                sells += 1
+        if not dry_run:
+            save_portfolio(data)
+        print()
+
+    # ── Refresh watchlist from Nasdaq most active (skip when explicit syms given) ──
+    if not symbols:
+        _sys.stderr.write("  fetching Nasdaq most active...\r"); _sys.stderr.flush()
+        active = fetch_nasdaq_most_active(50)
+        _sys.stderr.write(" " * 50 + "\r"); _sys.stderr.flush()
+        if active:
+            new_wl = [s for s in active if s not in delisted_syms]
+            syms   = new_wl
+            if not dry_run:
+                data["watchlist"] = new_wl
+                save_portfolio(data)
+            print(f"  {C}Watchlist refreshed:{Z} {len(new_wl)} Nasdaq most-active symbols")
+        else:
+            print(f"  {Y}Could not fetch Nasdaq most active — using current watchlist{Z}")
+        print()
 
     # ── Pass 1: fetch all signals up front ───────────────────────────────────
     scan_results = []
@@ -853,9 +940,13 @@ def cmd_autotrade(data: dict, symbols: Optional[list] = None, dry_run: bool = Fa
             print(f"  {sym:<7}  {D}{action:<8} — no action{Z}")
             skips += 1
 
+    total_val, pos_val = _portfolio_value(data)
+    pnl = total_val - STARTING_CASH
     print("  " + "=" * 76)
     print(f"  Buys: {buys}  |  Sells: {sells}  |  Skipped: {skips}  "
           f"|  Cash: {fmt_price(data['cash'])}")
+    print(f"  Portfolio Value: {fmt_price(total_val)}  "
+          f"(Positions: {fmt_price(pos_val)}  |  P&L: {fmt_currency(pnl)})")
     if dry_run:
         print(f"  {Y}Dry run — no orders were placed.{Z}")
     print()
@@ -923,6 +1014,8 @@ def print_help():
 
   {B}Automation{Z}
     autotrade [--dry] [SYM ...]    Scan signals and auto-execute BUY/SELL orders
+                                   Force-liquidates delisted holdings; refreshes
+                                   watchlist from Nasdaq most-active by volume
     watch [MIN] [--dry] [SYM ...]  Repeat autotrade every MIN minutes (default 5)
                                    Starts automatically at 09:20 ET (10 min pre-open)
                                    Pauses at market close (16:00 ET); resumes next day
