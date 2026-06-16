@@ -792,10 +792,10 @@ def cmd_reset():
         print("  No portfolio data found.")
 
 
-def _auto_shares(price: float, budget: float, strength: str) -> int:
-    """Shares to buy given a per-trade dollar budget and signal strength."""
+def _auto_shares(price: float, budget: float, strength: str) -> float:
+    """Shares to buy given a per-trade dollar budget and signal strength (fractional)."""
     mult = {"STRONG": 1.0, "MODERATE": 0.6, "WEAK": 0.3}.get(strength, 0.0)
-    return max(0, int(budget * mult / price))
+    return round(max(0.0, budget * mult / price), 4)
 
 
 def _is_actionable_buy(sym: str, strength: str, positions: dict) -> bool:
@@ -805,6 +805,17 @@ def _is_actionable_buy(sym: str, strength: str, positions: dict) -> bool:
     if not AUTO_ADD_TO_POS and sym in positions:
         return False
     return True
+
+
+def _signal_score(action: str, strength: str) -> int:
+    """Numeric rank for comparing signal conviction (higher = stronger bullish case)."""
+    if action == "BUY":
+        return {"STRONG": 5, "MODERATE": 4, "WEAK": 3}.get(strength, 3)
+    if action == "CONFLICT":
+        return 1
+    if action == "SELL":
+        return 0
+    return 2  # HOLD
 
 
 def cmd_autotrade(data: dict, symbols: Optional[list] = None, dry_run: bool = False):
@@ -867,7 +878,23 @@ def cmd_autotrade(data: dict, symbols: Optional[list] = None, dry_run: bool = Fa
         _sys.stderr.write(f"  scanning {sym}...\r"); _sys.stderr.flush()
         scan_results.append((sym, calc_orb(sym), calc_mean_reversion(sym),
                              calc_vwap(sym), calc_gap(sym)))
+    # Also scan held positions that aren't in the watchlist
+    scanned = {r[0] for r in scan_results}
+    for sym in list(data["positions"]):
+        if sym not in scanned:
+            _sys.stderr.write(f"  scanning held {sym}...\r"); _sys.stderr.flush()
+            scan_results.append((sym, calc_orb(sym), calc_mean_reversion(sym),
+                                 calc_vwap(sym), calc_gap(sym)))
     _sys.stderr.write(" " * 50 + "\r"); _sys.stderr.flush()
+
+    # Signal map for held positions — used to rank candidates for partial sells
+    holding_signals: dict = {}
+    for sym, orb, mr, vwap, gap in scan_results:
+        if sym in data["positions"] and orb and mr:
+            _act, _str = combine_signals(orb["signal"], mr["signal"],
+                                         vwap["signal"] if vwap else None,
+                                         gap["signal"]  if gap  else None)
+            holding_signals[sym] = (_act, _str, orb["current"])
 
     # ── Divide available cash evenly among qualifying BUY signals ────────────
     n_buys = 0
@@ -918,14 +945,58 @@ def cmd_autotrade(data: dict, symbols: Optional[list] = None, dry_run: bool = Fa
                 continue
             shares = _auto_shares(price, per_trade, strength)
             cost   = shares * price
-            if shares < 1:
-                print(f"  {sym:<7}  {Y}BUY signal — price too high for 1 share within budget{Z}")
+            if shares <= 0:
+                print(f"  {sym:<7}  {Y}BUY signal — insufficient budget for any shares{Z}")
                 skips += 1
                 continue
             if data["cash"] - cost < cash_floor:
-                print(f"  {sym:<7}  {Y}BUY signal — would breach cash reserve floor{Z}")
-                skips += 1
-                continue
+                # Try to fund by partially selling the weakest-signal holding
+                buy_score  = _signal_score(action, strength)
+                candidates = sorted(
+                    [(s, a, st, pr) for s, (a, st, pr) in holding_signals.items()
+                     if s != sym and _signal_score(a, st) < buy_score
+                     and data["positions"].get(s)],
+                    key=lambda x: _signal_score(x[1], x[2])
+                )
+                for wsym, waction, wstrength, wprice in candidates:
+                    wpos = data["positions"].get(wsym)
+                    if not wpos or wpos["shares"] <= 0:
+                        continue
+                    deficit  = cost - max(0.0, data["cash"] - cash_floor)
+                    sell_sh  = round(min(wpos["shares"] * wprice, deficit * 1.05) / wprice, 4)
+                    if sell_sh <= 0:
+                        continue
+                    gain_val = (wprice - wpos["avg_cost"]) * sell_sh
+                    print(f"  {wsym:<7}  {Y}PARTIAL SELL{Z}  "
+                          f"[{wstrength} {waction} → {strength} {sym}]  "
+                          f"{sell_sh:.4f} sh @ {fmt_price(wprice)}  P&L: {fmt_currency(gain_val)}")
+                    if not dry_run:
+                        wpos["shares"] = round(wpos["shares"] - sell_sh, 4)
+                        if wpos["shares"] <= 0:
+                            del data["positions"][wsym]
+                            holding_signals.pop(wsym, None)
+                        data["cash"] += round(wprice * sell_sh, 2)
+                        data["trades"].append({
+                            "time": datetime.now().isoformat(timespec="seconds"),
+                            "action": "SELL", "symbol": wsym,
+                            "shares": sell_sh, "price": wprice,
+                            "total": round(wprice * sell_sh, 2),
+                            "realized_pnl": round(gain_val, 2),
+                            "note": f"partial sell → fund {sym} [{strength}]",
+                        })
+                        save_portfolio(data)
+                    sells += 1
+                    if data["cash"] - cost >= cash_floor:
+                        break
+                # Recalculate affordable shares after any partial sells
+                available_for_buy = max(0.0, data["cash"] - cash_floor)
+                if cost > available_for_buy:
+                    shares = round(available_for_buy / price, 4) if price > 0 else 0.0
+                    cost   = shares * price
+                if shares <= 0 or data["cash"] - cost < cash_floor:
+                    print(f"  {sym:<7}  {Y}BUY signal — insufficient cash after rebalance{Z}")
+                    skips += 1
+                    continue
             print(f"  {sym:<7}  {G}AUTO BUY {Z}  {strength:<8}  "
                   f"{shares} sh @ {fmt_price(price)}  = {fmt_price(cost)}")
             if not dry_run:
