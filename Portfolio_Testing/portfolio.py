@@ -940,9 +940,13 @@ def cmd_autotrade(data: dict, symbols: Optional[list] = None, dry_run: bool = Fa
             print(f"  {sym:<7}  {D}{action:<8} — no action{Z}")
             skips += 1
 
+    total_val, pos_val = _portfolio_value(data)
+    pnl = total_val - STARTING_CASH
     print("  " + "=" * 76)
     print(f"  Buys: {buys}  |  Sells: {sells}  |  Skipped: {skips}  "
           f"|  Cash: {fmt_price(data['cash'])}")
+    print(f"  Portfolio Value: {fmt_price(total_val)}  "
+          f"(Positions: {fmt_price(pos_val)}  |  P&L: {fmt_currency(pnl)})")
     if dry_run:
         print(f"  {Y}Dry run — no orders were placed.{Z}")
     print()
