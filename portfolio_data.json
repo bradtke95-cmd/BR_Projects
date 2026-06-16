@@ -1,0 +1,132 @@
+{
+  "cash": 15226.339999999984,
+  "positions": {
+    "AAPL": {
+      "shares": 24,
+      "avg_cost": 296.42
+    },
+    "NVDA": {
+      "shares": 57,
+      "avg_cost": 212.46
+    },
+    "SPY": {
+      "shares": 9,
+      "avg_cost": 754.66
+    },
+    "COSM": {
+      "shares": 50595,
+      "avg_cost": 0.24
+    },
+    "TZA": {
+      "shares": 2990,
+      "avg_cost": 4.06
+    },
+    "MSFT": {
+      "shares": 57,
+      "avg_cost": 399.97
+    },
+    "PAVS": {
+      "shares": 100,
+      "avg_cost": 0.2
+    },
+    "GOOGL": {
+      "shares": 31,
+      "avg_cost": 372.85
+    },
+    "EVLVW": {
+      "shares": 4849,
+      "avg_cost": 0.02
+    }
+  },
+  "trades": [
+    {
+      "time": "2026-06-16T07:21:55",
+      "action": "BUY",
+      "symbol": "AAPL",
+      "shares": 24,
+      "price": 296.42,
+      "total": 7114.08
+    },
+    {
+      "time": "2026-06-16T07:21:55",
+      "action": "BUY",
+      "symbol": "NVDA",
+      "shares": 57,
+      "price": 212.46,
+      "total": 12110.220000000001
+    },
+    {
+      "time": "2026-06-16T07:21:55",
+      "action": "BUY",
+      "symbol": "META",
+      "shares": 20,
+      "price": 593.49,
+      "total": 11869.8
+    },
+    {
+      "time": "2026-06-16T07:21:55",
+      "action": "BUY",
+      "symbol": "SPY",
+      "shares": 9,
+      "price": 754.66,
+      "total": 6791.94
+    },
+    {
+      "time": "2026-06-16T07:21:55",
+      "action": "BUY",
+      "symbol": "COSM",
+      "shares": 50595,
+      "price": 0.24,
+      "total": 12142.8
+    },
+    {
+      "time": "2026-06-16T07:21:55",
+      "action": "BUY",
+      "symbol": "TZA",
+      "shares": 2990,
+      "price": 4.06,
+      "total": 12139.4
+    },
+    {
+      "time": "2026-06-16T07:28:33",
+      "action": "BUY",
+      "symbol": "MSFT",
+      "shares": 57,
+      "price": 399.97,
+      "total": 22798.29
+    },
+    {
+      "time": "2026-06-16T07:34:51",
+      "action": "BUY",
+      "symbol": "PAVS",
+      "shares": 100,
+      "price": 0.2,
+      "total": 20.0
+    },
+    {
+      "time": "2026-06-16T08:41:39",
+      "action": "SELL",
+      "symbol": "META",
+      "shares": 20,
+      "price": 593.41,
+      "total": 11868.199999999999,
+      "realized_pnl": -1.6
+    },
+    {
+      "time": "2026-06-16T08:47:17",
+      "action": "BUY",
+      "symbol": "GOOGL",
+      "shares": 31,
+      "price": 372.85,
+      "total": 11558.35
+    },
+    {
+      "time": "2026-06-16T08:58:24",
+      "action": "BUY",
+      "symbol": "EVLVW",
+      "shares": 4849,
+      "price": 0.02,
+      "total": 96.98
+    }
+  ]
+}
