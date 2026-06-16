@@ -1,0 +1,224 @@
+{
+  "cash": 54684.56,
+  "positions": {
+    "SPCX": {
+      "shares": 10.0,
+      "avg_cost": 160.95
+    },
+    "GOOGL": {
+      "shares": 10.0,
+      "avg_cost": 359.68
+    },
+    "SPY": {
+      "shares": 10.0,
+      "avg_cost": 741.75
+    },
+    "QQQ": {
+      "shares": 10.0,
+      "avg_cost": 721.34
+    },
+    "AAPL": {
+      "shares": 3.0,
+      "avg_cost": 296.14
+    },
+    "META": {
+      "shares": 5,
+      "avg_cost": 592.77
+    },
+    "COSM": {
+      "shares": 22686,
+      "avg_cost": 0.22
+    },
+    "TZA": {
+      "shares": 1238,
+      "avg_cost": 4.03
+    },
+    "NVDA": {
+      "shares": 14,
+      "avg_cost": 211.28
+    },
+    "MSFT": {
+      "shares": 7,
+      "avg_cost": 398.9
+    },
+    "HUBC": {
+      "shares": 2679,
+      "avg_cost": 1.87
+    }
+  },
+  "trades": [
+    {
+      "time": "2026-06-12T15:43:37",
+      "action": "BUY",
+      "symbol": "SPCX",
+      "shares": 10.0,
+      "price": 160.95,
+      "total": 1609.5
+    },
+    {
+      "time": "2026-06-12T15:43:47",
+      "action": "BUY",
+      "symbol": "GOOGL",
+      "shares": 10.0,
+      "price": 359.68,
+      "total": 3596.8
+    },
+    {
+      "time": "2026-06-12T15:44:09",
+      "action": "BUY",
+      "symbol": "TSLA",
+      "shares": 10.0,
+      "price": 406.43,
+      "total": 4064.3
+    },
+    {
+      "time": "2026-06-12T15:44:15",
+      "action": "BUY",
+      "symbol": "SPY",
+      "shares": 10.0,
+      "price": 741.75,
+      "total": 7417.5
+    },
+    {
+      "time": "2026-06-12T15:44:19",
+      "action": "BUY",
+      "symbol": "QQQ",
+      "shares": 10.0,
+      "price": 721.34,
+      "total": 7213.400000000001
+    },
+    {
+      "time": "2026-06-12T15:50:34",
+      "action": "BUY",
+      "symbol": "AAPL",
+      "shares": 10.0,
+      "price": 280.0,
+      "total": 2800.0
+    },
+    {
+      "time": "2026-06-12T15:50:35",
+      "action": "SELL",
+      "symbol": "AAPL",
+      "shares": 10.0,
+      "price": 295.0,
+      "total": 2950.0,
+      "realized_pnl": 150.0
+    },
+    {
+      "time": "2026-06-12T15:50:35",
+      "action": "BUY",
+      "symbol": "MSFT",
+      "shares": 5.0,
+      "price": 380.0,
+      "total": 1900.0
+    },
+    {
+      "time": "2026-06-12T15:50:36",
+      "action": "SELL",
+      "symbol": "MSFT",
+      "shares": 5.0,
+      "price": 370.0,
+      "total": 1850.0,
+      "realized_pnl": -50.0
+    },
+    {
+      "time": "2026-06-12T15:50:37",
+      "action": "BUY",
+      "symbol": "NVDA",
+      "shares": 3.0,
+      "price": 480.0,
+      "total": 1440.0
+    },
+    {
+      "time": "2026-06-12T15:52:11",
+      "action": "SELL",
+      "symbol": "NVDA",
+      "shares": 3.0,
+      "price": 205.19,
+      "total": 615.5699999999999,
+      "realized_pnl": -824.43
+    },
+    {
+      "time": "2026-06-15T08:34:27",
+      "action": "BUY",
+      "symbol": "AAPL",
+      "shares": 3.0,
+      "price": 296.14,
+      "total": 888.42
+    },
+    {
+      "time": "2026-06-15T08:40:47",
+      "action": "BUY",
+      "symbol": "META",
+      "shares": 5,
+      "price": 592.77,
+      "total": 2963.85
+    },
+    {
+      "time": "2026-06-15T08:49:50",
+      "action": "BUY",
+      "symbol": "COSM",
+      "shares": 22686,
+      "price": 0.22,
+      "total": 4990.92
+    },
+    {
+      "time": "2026-06-15T08:49:52",
+      "action": "BUY",
+      "symbol": "TZA",
+      "shares": 1238,
+      "price": 4.03,
+      "total": 4989.14
+    },
+    {
+      "time": "2026-06-15T09:06:17",
+      "action": "BUY",
+      "symbol": "NVDA",
+      "shares": 14,
+      "price": 211.28,
+      "total": 2957.92
+    },
+    {
+      "time": "2026-06-15T09:06:18",
+      "action": "SELL",
+      "symbol": "TSLA",
+      "shares": 10.0,
+      "price": 407.77,
+      "total": 4077.7,
+      "realized_pnl": 13.4
+    },
+    {
+      "time": "2026-06-15T09:11:55",
+      "action": "BUY",
+      "symbol": "MSFT",
+      "shares": 7,
+      "price": 398.9,
+      "total": 2792.2999999999997
+    },
+    {
+      "time": "2026-06-15T10:02:06",
+      "action": "BUY",
+      "symbol": "BMNU",
+      "shares": 2499,
+      "price": 1.2,
+      "total": 2998.7999999999997
+    },
+    {
+      "time": "2026-06-15T10:35:38",
+      "action": "BUY",
+      "symbol": "HUBC",
+      "shares": 2679,
+      "price": 1.87,
+      "total": 5009.7300000000005
+    },
+    {
+      "time": "2026-06-15T13:31:29",
+      "action": "SELL",
+      "symbol": "BMNU",
+      "shares": 2499,
+      "price": 1.13,
+      "total": 2823.87,
+      "realized_pnl": -174.93
+    }
+  ]
+}
