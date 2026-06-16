@@ -1,5 +1,5 @@
 {
-  "cash": 15226.339999999984,
+  "cash": 15000.169999999984,
   "positions": {
     "AAPL": {
       "shares": 24,
@@ -36,6 +36,10 @@
     "EVLVW": {
       "shares": 4849,
       "avg_cost": 0.02
+    },
+    "GRAB": {
+      "shares": 63,
+      "avg_cost": 3.59
     }
   },
   "trades": [
@@ -127,57 +131,65 @@
       "shares": 4849,
       "price": 0.02,
       "total": 96.98
+    },
+    {
+      "time": "2026-06-16T10:06:40",
+      "action": "BUY",
+      "symbol": "GRAB",
+      "shares": 63,
+      "price": 3.59,
+      "total": 226.17
     }
   ],
   "watchlist": [
     "INTC",
-    "NVDA",
     "AAL",
+    "NVDA",
     "SOFI",
     "KEEL",
+    "OPEN",
     "GRAB",
     "MRVL",
+    "NFLX",
     "ONDS",
     "SMCI",
-    "OPEN",
-    "NFLX",
-    "MU",
     "EOSE",
-    "TSLA",
+    "MU",
     "CRWV",
     "PLUG",
+    "TSLA",
     "RGTI",
     "MARA",
     "HOOD",
     "PLTR",
-    "MCW",
     "IREN",
     "POET",
     "RKLB",
     "AMZN",
+    "MCW",
     "AAPL",
     "SOUN",
     "AMD",
     "WULF",
     "MSFT",
-    "APLD",
     "NVTS",
+    "APLD",
     "ERIC",
     "AVGO",
     "GOOGL",
-    "ASTS",
     "FOXA",
+    "ASTS",
+    "AUR",
     "CLSK",
     "CIFR",
-    "QUBT",
     "RIVN",
-    "AUR",
+    "QUBT",
     "SATS",
     "QCOM",
     "WDC",
     "LUNR",
-    "TTD",
     "NBIS",
+    "TTD",
     "ARM",
     "AMKR"
   ]
